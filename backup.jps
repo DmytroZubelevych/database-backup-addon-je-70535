@@ -137,6 +137,12 @@ settings:
         min: 1
         max: 30
         default: 5
+      - type: displayfield
+        name: displayfield
+        markup: Please specify the database user that has enough privileges to access and modify all the databases stored on server. Username and password are required for all the DB servers except Redis.
+        hidden: false
+        hideLabel: true
+        cls: warning
       - hideLabel: false
         hidden: false
         type: string
