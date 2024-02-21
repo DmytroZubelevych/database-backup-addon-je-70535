@@ -26,6 +26,7 @@ targetNodes:
     - mariadb11
     - mongodb-dockerized
     - mongodb
+    - mongo
     - perconadb
     - percona8
     - percona5
