@@ -6,5 +6,4 @@ if grep -q ^[[:space:]]*replSetName /etc/mongod.conf; then
 else 
     export RS_SUFFIX=""; 
 fi
-#mongorestore --uri="mongodb://%(dbuser):%(dbpass)@localhost${RS_SUFFIX}" ~/dump
-mongorestore --uri="mongodb://${1}:${2}@localhost${RS_SUFFIX}" ~/dump
+mongorestore --uri="mongodb://${1}:${2}@localhost${RS_SUFFIX}" ~/dump 1>/dev/null

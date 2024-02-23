@@ -173,17 +173,18 @@ function BackupManager(config) {
             [ me.removeMounts ],
             [ me.addMountForRestore ],
             [ me.cmd, [
-		'echo $(date) %(envName) Restoring the snapshot $(cat /root/.backupid)', 
+		'echo $(date) %(envName) Restoring the snapshot $(cat /root/.backupid) | tee -a %(restoreLogFile)', 
                 'SNAPSHOT_ID=$(RESTIC_PASSWORD=$(cat /root/.backupedenv) restic -r /opt/backup/$(cat /root/.backupedenv) snapshots|grep $(cat /root/.backupid)|awk \'{print $1}\')',
                 '[ -n "${SNAPSHOT_ID}" ] || false',
 		'source /etc/jelastic/metainf.conf',
-		'RESTIC_PASSWORD=$(cat /root/.backupedenv) restic -r /opt/backup/$(cat /root/.backupedenv) restore ${SNAPSHOT_ID} --target /',
-		'if [ "$COMPUTE_TYPE" == "redis" ]; then rm -f /root/redis-restore.sh; wget -O /root/redis-restore.sh %(baseUrl)/scripts/redis-restore.sh; chmod +x /root/redis-restore.sh; bash /root/redis-restore.sh; else true; fi',
-		'[ "$COMPUTE_TYPE" == "postgres" ] && PGPASSWORD=%(dbpass) psql -U %(dbuser) -d postgres < /root/db_backup.sql || true',
-		'if [ "$COMPUTE_TYPE" == "mariadb" ] || [ "$COMPUTE_TYPE" == "mysql" ] || [ "$COMPUTE_TYPE" == "percona" ]; then mysql -h localhost -u %(dbuser) -p%(dbpass) --force < /root/db_backup.sql; else true; fi',
-                'if [ "$COMPUTE_TYPE" == "mongodb" ]; then rm -f /root/mongo-restore.sh; wget -O /root/mongo-restore.sh %(baseUrl)/scripts/mongo-restore.sh; chmod +x /root/mongo-restore.sh; bash /root/mongo-restore.sh %(dbuser) %(dbpass); else true; fi',
+		'RESTIC_PASSWORD=$(cat /root/.backupedenv) GOGC=20 restic -r /opt/backup/$(cat /root/.backupedenv) restore ${SNAPSHOT_ID} --target /',
+		'if [ "$COMPUTE_TYPE" == "redis" ]; then rm -f /root/redis-restore.sh; wget -O /root/redis-restore.sh %(baseUrl)/scripts/redis-restore.sh; chmod +x /root/redis-restore.sh; bash /root/redis-restore.sh 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
+		'if [ "$COMPUTE_TYPE" == "postgres" ]; then PGPASSWORD=%(dbpass) psql -q -U %(dbuser) -d postgres < /root/db_backup.sql 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
+		'if [ "$COMPUTE_TYPE" == "mariadb" ] || [ "$COMPUTE_TYPE" == "mysql" ] || [ "$COMPUTE_TYPE" == "percona" ]; then mysql --silent -h localhost -u %(dbuser) -p%(dbpass) --force < /root/db_backup.sql 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
+                'if [ "$COMPUTE_TYPE" == "mongodb" ]; then rm -f /root/mongo-restore.sh; wget -O /root/mongo-restore.sh %(baseUrl)/scripts/mongo-restore.sh; chmod +x /root/mongo-restore.sh; bash /root/mongo-restore.sh %(dbuser) %(dbpass) 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
 		'jem service restart',
-		'if [ -n "$REPLICA_PSWD" ] && [ -n "$REPLICA_USER" ] ; then wget %(baseUrl)/scripts/setupUser.sh -O /root/setupUser.sh &>> /var/log/run.log; bash /root/setupUser.sh ${REPLICA_USER} ${REPLICA_PSWD} %(userEmail) %(envName) %(userSession); fi'
+		'if [ -n "$REPLICA_PSWD" ] && [ -n "$REPLICA_USER" ] ; then wget %(baseUrl)/scripts/setupUser.sh -O /root/setupUser.sh &>> /var/log/run.log; bash /root/setupUser.sh ${REPLICA_USER} ${REPLICA_PSWD} %(userEmail) %(envName) %(userSession); fi',
+		'echo $(date) %(envName) snapshot $(cat /root/.backupid) restored successfully| tee -a %(restoreLogFile)'
             ], {
                 nodeId : config.backupExecNode,
                 envName : config.envName,
@@ -192,6 +193,7 @@ function BackupManager(config) {
 		dbpass: config.dbpass,
 		userEmail: user.email,
 		userSession: session,
+		restoreLogFile : "/var/log/backup_addon_restore.log"
             }],
         [ me.removeMounts ]
     ]);
