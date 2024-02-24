@@ -5,7 +5,7 @@ DBPASSWD=$3
 
 function checkCredentials(){
     source /etc/jelastic/metainf.conf 
-    
+    sudo service ${SERVICE} status || jem service start
     if [ "$COMPUTE_TYPE" == "postgres" ]; then
         PGPASSWORD="${DBPASSWD}" psql -U ${DBUSER} -d postgres -c "SELECT current_user" || exit 1;
     elif [ "$COMPUTE_TYPE" == "mariadb" ] || [ "$COMPUTE_TYPE" == "mysql" ] || [ "$COMPUTE_TYPE" == "percona" ]; then
