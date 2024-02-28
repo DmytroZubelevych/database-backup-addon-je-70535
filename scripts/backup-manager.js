@@ -179,7 +179,7 @@ function BackupManager(config) {
 		'source /etc/jelastic/metainf.conf',
 		'RESTIC_PASSWORD=$(cat /root/.backupedenv) GOGC=20 restic -r /opt/backup/$(cat /root/.backupedenv) restore ${SNAPSHOT_ID} --target /',
 		'if [ "$COMPUTE_TYPE" == "redis" ]; then rm -f /root/redis-restore.sh; wget -O /root/redis-restore.sh %(baseUrl)/scripts/redis-restore.sh; chmod +x /root/redis-restore.sh; bash /root/redis-restore.sh 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
-		'if [ "$COMPUTE_TYPE" == "postgres" ]; then PGPASSWORD=%(dbpass) psql -q -U %(dbuser) -d postgres < /root/db_backup.sql 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
+		'if [ "$COMPUTE_TYPE" == "postgres" ]; then PGPASSWORD=%(dbpass) psql --no-readline -q -U %(dbuser) -d postgres < /root/db_backup.sql 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
 		'if [ "$COMPUTE_TYPE" == "mariadb" ] || [ "$COMPUTE_TYPE" == "mysql" ] || [ "$COMPUTE_TYPE" == "percona" ]; then mysql --silent -h localhost -u %(dbuser) -p%(dbpass) --force < /root/db_backup.sql 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
                 'if [ "$COMPUTE_TYPE" == "mongodb" ]; then rm -f /root/mongo-restore.sh; wget -O /root/mongo-restore.sh %(baseUrl)/scripts/mongo-restore.sh; chmod +x /root/mongo-restore.sh; bash /root/mongo-restore.sh %(dbuser) %(dbpass) 2> >(tee -a %(restoreLogFile) >&2); else true; fi',
 		'jem service restart',
