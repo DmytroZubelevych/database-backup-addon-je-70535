@@ -173,7 +173,8 @@ function BackupManager(config) {
             [ me.removeMounts ],
             [ me.addMountForRestore ],
             [ me.cmd, [
-		'echo $(date) %(envName) Restoring the snapshot $(cat /root/.backupid) | tee -a %(restoreLogFile)', 
+		'echo $(date) %(envName) Restoring the snapshot $(cat /root/.backupid) | tee -a %(restoreLogFile)',
+		'/usr/bin/restic self-update 2>&1 || true',
                 'SNAPSHOT_ID=$(RESTIC_PASSWORD=$(cat /root/.backupedenv) restic -r /opt/backup/$(cat /root/.backupedenv) snapshots|grep $(cat /root/.backupid)|awk \'{print $1}\')',
                 '[ -n "${SNAPSHOT_ID}" ] || false',
 		'source /etc/jelastic/metainf.conf',

@@ -75,7 +75,7 @@ function sendEmailNotification(){
 }
 
 function update_restic(){
-    restic self-update 2>&1;
+    restic self-update 2>&1 || true;
 }
 
 function check_backup_repo(){
