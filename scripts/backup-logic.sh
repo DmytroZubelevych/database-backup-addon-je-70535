@@ -147,7 +147,13 @@ function backup(){
         else
             RS_SUFFIX="";
         fi
-        mongodump --uri="mongodb://${DBUSER}:${DBPASSWD}@localhost${RS_SUFFIX}"
+	TLS_MODE=$(yq eval  '.net.tls.mode' /etc/mongod.conf)
+        if [ "$TLS_MODE" == "requireTLS" ]; then
+	    SSL_TLS_OPTIONS="--ssl --sslPEMKeyFile=/var/lib/jelastic/keys/SSL-TLS/client/client.pem --sslCAFile=/var/lib/jelastic/keys/SSL-TLS/client/root.pem --tlsInsecure"
+        else
+	    SSL_TLS_OPTIONS=""
+	fi
+        mongodump ${SSL_TLS_OPTIONS} --uri="mongodb://${DBUSER}:${DBPASSWD}@localhost${RS_SUFFIX}"
     else
         mysql -h localhost -u ${DBUSER} -p${DBPASSWD} mysql --execute="SHOW COLUMNS FROM user" || { echo "DB credentials specified in add-on settings are incorrect!"; exit 1; }
         mysqldump -h localhost -u ${DBUSER} -p${DBPASSWD} --force --single-transaction --quote-names --opt --all-databases > db_backup.sql || { echo "DB backup process failed."; exit 1; }
