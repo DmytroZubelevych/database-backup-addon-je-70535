@@ -140,7 +140,7 @@ function BackupManager(config) {
 		baseUrl : config.baseUrl
 	    }],
             [me.cmd, [
-                'bash /root/%(envName)_backup-logic.sh update_restic'
+                'bash /root/%(envName)_backup-logic.sh update_restic %(baseUrl)'
             ], backupCallParams ],
             [ me.cmd, [
                 'bash /root/%(envName)_backup-logic.sh check_backup_repo %(baseUrl) %(backupType) %(nodeId) %(backupLogFile) %(envName) %(backupCount) %(dbuser) %(dbpass) %(session) %(email)'
@@ -173,8 +173,21 @@ function BackupManager(config) {
             [ me.removeMounts ],
             [ me.addMountForRestore ],
             [ me.cmd, [
-		'echo $(date) %(envName) Restoring the snapshot $(cat /root/.backupid) | tee -a %(restoreLogFile)',
-		'/usr/bin/restic self-update 2>&1 || true',
+	        '[ -f /root/%(envName)_backup-logic.sh ] && rm -f /root/%(envName)_backup-logic.sh || true',
+                'wget -O /root/%(envName)_backup-logic.sh %(baseUrl)/scripts/backup-logic.sh'
+            ], {
+		nodeId : config.backupExecNode,
+                envName : config.envName,
+		baseUrl : config.baseUrl
+	    }],
+            [me.cmd, [
+                'bash /root/%(envName)_backup-logic.sh update_restic %(baseUrl)'
+            ], {
+		nodeId : config.backupExecNode,
+                envName : config.envName,
+		baseUrl : config.baseUrl
+	    }],
+            [ me.cmd, [
                 'SNAPSHOT_ID=$(RESTIC_PASSWORD=$(cat /root/.backupedenv) restic -r /opt/backup/$(cat /root/.backupedenv) snapshots|grep $(cat /root/.backupid)|awk \'{print $1}\')',
                 '[ -n "${SNAPSHOT_ID}" ] || false',
 		'source /etc/jelastic/metainf.conf',

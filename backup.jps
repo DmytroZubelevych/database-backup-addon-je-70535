@@ -149,7 +149,7 @@ settings:
         type: string
         caption: Database User
         name: dbuser
-        tooltip: In case you restore non-native database backup do not forget to provide its credentials instead of initial ones with help of add-on Configure action. It is relevant to <b>sqldb</b> databases only.
+        tooltip: In case you restore non-native database backup do not forget to provide its credentials instead of initial ones with help of add-on Configure action. It is relevant to <b>sqldb</b> databases and <b>MongoDB</b> only.
       - hideLabel: false
         hidden: false
         type: string
@@ -192,7 +192,6 @@ globals:
 onInstall:
   - checkAddons
   - installRestic
-  - updateRestic
   - setSchedule
 
 onUninstall:
@@ -205,7 +204,6 @@ onBeforeDelete:
   
 onAfterRedeployContainer[${targetNodes.nodeGroup}]:
   - installRestic
-  - updateRestic
   
 onAfterClone:     
   - script: return {result:0, jps:MANIFEST};
@@ -257,21 +255,9 @@ actions:
 
   installRestic:
     cmd [${targetNodes.nodeGroup}]: |-
-      if which dnf; then
-          dnf install epel-release && dnf install restic
-      else
-          yum-config-manager --disable nodesource && \
-          yum-config-manager --add-repo https://copr.fedorainfracloud.org/coprs/copart/restic/repo/epel-7/copart-restic-epel-7.repo && \
-          yum-config-manager --enable copr:copr.fedorainfracloud.org:copart:restic && \
-          yum -y install restic && \
-          yum-config-manager --disable copr:copr.fedorainfracloud.org:copart:restic && \
-          wget -O /etc/logrotate.d/backup-addon ${baseUrl}/scripts/backup-addon;
-      fi
-    user: root
-
-  updateRestic:
-    cmd [${targetNodes.nodeGroup}]: |-
-      /usr/bin/restic self-update 2>&1 || true
+        wget --tries=10 -O /tmp/installUpdateRestic ${baseUrl}/scripts/installUpdateRestic && \
+        mv -f /tmp/installUpdateRestic /usr/sbin/installUpdateRestic && \
+        chmod +x /usr/sbin/installUpdateRestic && /usr/sbin/installUpdateRestic
     user: root
 
   installScript:

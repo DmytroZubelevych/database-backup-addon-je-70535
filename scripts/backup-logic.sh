@@ -15,21 +15,6 @@ BACKUP_ADDON_REPO=$(echo ${BASE_URL}|sed 's|https:\/\/raw.githubusercontent.com\
 BACKUP_ADDON_BRANCH=$(echo ${BASE_URL}|sed 's|https:\/\/raw.githubusercontent.com\/||'|awk -F / '{print $3}')
 BACKUP_ADDON_COMMIT_ID=$(git ls-remote https://github.com/${BACKUP_ADDON_REPO}.git | grep "/${BACKUP_ADDON_BRANCH}$" | awk '{print $1}')
 
-if which restic; then
-    true
-else
-    if which dnf 2>&1; then
-          dnf install -y epel-release 2>&1
-          dnf install -y restic 2>&1
-    else
-          yum-config-manager --disable nodesource 2>&1
-          yum-config-manager --add-repo https://copr.fedorainfracloud.org/coprs/copart/restic/repo/epel-7/copart-restic-epel-7.repo 2>&1
-          yum-config-manager --enable copr:copr.fedorainfracloud.org:copart:restic 2>&1
-          yum -y install restic 2>&1
-          yum-config-manager --disable copr:copr.fedorainfracloud.org:copart:restic 2>&1
-    fi 
-fi
-
 if [ "$COMPUTE_TYPE" == "mongodb" ]; then
     if grep -q '^replication' /etc/mongod.conf; then
         MONGO_TYPE="-replica-set"
@@ -37,7 +22,6 @@ if [ "$COMPUTE_TYPE" == "mongodb" ]; then
         MONGO_TYPE="-standalone"
     fi
 fi
-
 
 source /etc/jelastic/metainf.conf;
 
@@ -49,6 +33,12 @@ if [ "$COMPUTE_TYPE" == "redis" ]; then
         REDIS_TYPE="-standalone"
     fi
 fi
+
+function forceInstallUpdateRestic(){
+        wget --tries=10 -O /tmp/installUpdateRestic ${BASE_URL}/scripts/installUpdateRestic && \
+        mv -f /tmp/installUpdateRestic /usr/sbin/installUpdateRestic && \
+        chmod +x /usr/sbin/installUpdateRestic && /usr/sbin/installUpdateRestic
+}
 
 function sendEmailNotification(){
     if [ -e "/usr/lib/jelastic/modules/api.module" ]; then
@@ -75,7 +65,11 @@ function sendEmailNotification(){
 }
 
 function update_restic(){
-    restic self-update 2>&1 || true;
+    if which restic; then
+        restic self-update || forceInstallUpdateRestic
+    else
+        forceInstallUpdateRestic
+    fi
 }
 
 function check_backup_repo(){
