@@ -91,7 +91,10 @@ if (storage_unavailable_markup === "") {
     if (checkSchema.responses[0].out == "true") {
         settings.fields.push(
             {"type": "displayfield", "cls": "warning", "height": 30, "hideLabel": true, "markup": mysql_cluster_markup}
-        )	    
+        );
+	settings.fields.push(
+            {"type": "displayfield", "cls": "warning", "height": 30, "hideLabel": true, "markup": recovery_addon_markup}
+        );
     }	
 } else {
     settings.fields.push(
