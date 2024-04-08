@@ -3,6 +3,7 @@ var storage_unavailable_markup = "";
 var storageInfo = getStorageNodeid();
 var storageEnvDomain = storageInfo.storageEnvShortName;
 var storageEnvMasterId = storageInfo.storageNodeId;
+var checkSchemaCommand = "if grep -q '^SCHEME=' /.jelenv; then echo "true"; else echo false; fi";
 
 resp = jelastic.env.control.GetEnvInfo(storageEnvDomain, session);
 if (resp.result != 0 && resp.result != 11) return resp;
