@@ -21,6 +21,9 @@ if (resp.result == 11) {
 } else {
     storage_unavailable_markup = "Storage environment " + storageEnvDomain + " is unavailable (stopped/sleeping).";
 }
+
+var checkSchema = api.env.control.ExecCmdById("${env.name}", session, ${targetNodes.master.id}, toJSON([{"command": checkSchemaCommand, "params": ""}]), false, "root");
+if (respUpdate.result != 0) return resp;
       
 function getStorageNodeid(){
     var storageEnv = '${settings.storageName}'
