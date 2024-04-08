@@ -13,7 +13,7 @@ if (resp.result == 11) {
     var baseUrl = jps.baseUrl;
     var updateResticOnStorageCommand = "wget --tries=10 -O /tmp/installUpdateRestic " + baseUrl + "/scripts/installUpdateRestic && mv -f /tmp/installUpdateRestic /usr/sbin/installUpdateRestic && chmod +x /usr/sbin/installUpdateRestic && /usr/sbin/installUpdateRestic";
     var respUpdate = api.env.control.ExecCmdById(storageEnvDomain, session, storageEnvMasterId, toJSON([{"command": updateResticOnStorageCommand, "params": ""}]), false, "root");
-    if (respUpdate.result != 0) return resp;
+    if (respUpdate.result != 0) return respUpdate;
     var backups = jelastic.env.control.ExecCmdById(storageEnvDomain, session, storageEnvMasterId, toJSON([{"command": "/root/getBackupsAllEnvs.sh", "params": ""}]), false, "root").responses[0].out;
     var backupList = toNative(new JSONObject(String(backups)));
     var envs = prepareEnvs(backupList.envs);
@@ -23,7 +23,7 @@ if (resp.result == 11) {
 }
 
 var checkSchema = api.env.control.ExecCmdById("${env.name}", session, ${targetNodes.master.id}, toJSON([{"command": checkSchemaCommand, "params": ""}]), false, "root");
-if (respUpdate.result != 0) return resp;
+if (checkSchema.result != 0) return checkSchema;
       
 function getStorageNodeid(){
     var storageEnv = '${settings.storageName}'
