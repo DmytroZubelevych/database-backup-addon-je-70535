@@ -5,7 +5,7 @@ var storageEnvDomain = storageInfo.storageEnvShortName;
 var storageEnvMasterId = storageInfo.storageNodeId;
 var checkSchemaCommand = "if grep -q '^SCHEME=' /.jelenv; then echo true; else echo false; fi";
 var mysql_cluster_markup = "Be careful when restoring the dump from another DB environment (or environment with another replication schema) to the replicated MySQL/MariaDB/Percona solution.";
-var recovery_addon_markup = "Please use the Database Corruption Diagnostic add-on for check after restore, and database Recovery Add-on for fix (if needed). You can also refer to Manual Recovery Guide.";
+var recovery_addon_markup = "Please use Database Corruption Diagnostic add-on for check after restore, and Database Recovery Add-on for fix if it is needed (or refer to Manual Recovery Guide).";
 
 resp = jelastic.env.control.GetEnvInfo(storageEnvDomain, session);
 if (resp.result != 0 && resp.result != 11) return resp;
