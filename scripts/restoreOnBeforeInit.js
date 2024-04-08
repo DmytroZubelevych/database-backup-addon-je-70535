@@ -4,6 +4,7 @@ var storageInfo = getStorageNodeid();
 var storageEnvDomain = storageInfo.storageEnvShortName;
 var storageEnvMasterId = storageInfo.storageNodeId;
 var checkSchemaCommand = "if grep -q '^SCHEME=' /.jelenv; then echo true; else echo false; fi";
+var mysql_cluster_markup = "clustered solution";
 
 resp = jelastic.env.control.GetEnvInfo(storageEnvDomain, session);
 if (resp.result != 0 && resp.result != 11) return resp;
@@ -85,7 +86,12 @@ if (storage_unavailable_markup === "") {
             "dependsOn": {
                 "backupedEnvName" : backups
             }
-        })
+        });
+    if (checkSchema.responses[0].out == "true") {
+        settings.fields.push(
+            {"type": "displayfield", "cls": "warning", "height": 30, "hideLabel": true, "markup": mysql_cluster_markup}
+        )	    
+    }	
 } else {
     settings.fields.push(
         {"type": "displayfield", "cls": "warning", "height": 30, "hideLabel": true, "markup": storage_unavailable_markup}
